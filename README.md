@@ -1,34 +1,26 @@
-# Future Work 
-- Clean current modules (style guidelines)
-  - Split perceptual hash modules
-  - Add configuration options for full perceptual hash (faster options)
-  - Unify reference-passing guidelines and privacy modifiers
-  - Build smarter interfaces and documentation
-  - Build organizational graph of all modules and future modules
-    - All past and future modules
-    - Organization and library dependencies
-- Wrap all libraries using CMake for maximum compatibility
-- Build graphics module:
-  - Consider using library instead of BMP for portability
-  - Reverse grid printing (tie graphics module into grid)
-  - Graphical feature highlighting
-- Build discrete cosine transfer perceptual hash
+# Implementation Steps
+
+- Organize module hierarchy
+- Choose libraries with portability bundle
+- Build image reading and pixel grid module
+- Build image graphics module with feature highlighting
+- Build traditional perceptual hash and comparison module
+- Build discrete cosine transfer perceptual hash and comparison module
     - Links:
         - https://users.cs.cf.ac.uk/Dave.Marshall/Multimedia/node231.html
         - http://hackerfactor.com/blog/index.php%3F/archives/432-Looks-Like-It.html
-    - Separate full and partial phash modules 
-    - Redundancy technologies to maximize effectivness
-- Implement pure image algorithm (module)
-  - Feature and keypoint extraction
-    - SIFT keypoints
-    - Naive pixel values
-  - Add ML algorithm for comparing 32x32 grids (double feedback)
-  - Redundancy technologies to maximize effectivness
-- Key point scrambbling algorithm (module)
-  - Intelligent scrambbling of keypoint results
-  - Use fixed hash values based on region hashes
-  - Test results and tweak parameters for best success rates
-- Implement database module
-- Implement web client
+- Build feature selection module
+  - Redundant selection methods (SIFT keypoints, corners, clusters, naive pixel values)
+- Build feature randomization module with selection probabilities
+- Build keypoint region comparison module
+  - Use traditional perceptual hash
+  - Use DCT pereceptual hash
+  - Use CNN (and other methods?)
+- Buidl pure image algorithm for comparing images
+  - Select most probably features
+  - Run features through deterministic randomization scheme
+  - Compare keypoint regions
+- Build database module
+- Build web client
 
 # Module Hierarchy

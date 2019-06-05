@@ -1,10 +1,4 @@
-### Software Requirements/Libraries:
-- C++17 
-- openCV (opencv4)
-- pkg-config (note: you may have to manually set PKG_CONFIG_PATH)
-- Homebrew (recommended)
-
-# To Do
+# Future Work 
 - Clean current modules (style guidelines)
   - Split perceptual hash modules
   - Add configuration options for full perceptual hash (faster options)
@@ -37,21 +31,4 @@
 - Implement database module
 - Implement web client
 
-# Files
-- hash/
-    - ihash.h: Defines top-level hash class
-    - phash.h: Defines image-based perceptual hash class and utilities
-    - dcthash.h: Defines DCT perceptual hash class and utilities
-- bmp.h: Defines class and utilities for converting image files into pixel grid
-- grid.h: Defines class and utilities for handling raw pixel grids
-
 # Module Hierarchy
-.
-+--- Hash
-     +--- Image Perceptual Hash
-     +--- DCT Perceptual Hash
-+--- PImage
-     +--- BMP Image
-          +--- Pixel Grid
-     +--- Graphics
-    

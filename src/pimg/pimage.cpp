@@ -23,3 +23,4 @@ PureImage::PureImage(const string& filename, bool verbose) :
 PureImage::~PureImage() {
     image.reset(nullptr);
 }
+Intelligent cryptographic web client for image validation

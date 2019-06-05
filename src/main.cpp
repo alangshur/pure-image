@@ -14,13 +14,13 @@ int main(int args, char* argv[]) {
         clock_t start = clock();
 
         PureImage pimg1(filename1, true); 
-        // PureImage pimg2(filename2, true); 
+        PureImage pimg2(filename2, true); 
 
-        // // compare hashes
-        // ImagePerceptualHash::compareHashes(pimg1.getPHash(), pimg2.getPHash());
+        // compare hashes
+        ImagePerceptualHash::compareHashes(pimg1.getPHash(), pimg2.getPHash());
 
-        // double duration = (clock() - start) / double(CLOCKS_PER_SEC);
-        // cout << endl << "Processing time: " << to_string(duration) << endl << flush;
+        double duration = (clock() - start) / double(CLOCKS_PER_SEC);
+        cout << endl << "Processing time: " << to_string(duration) << endl << flush;
     }
     catch (const char* e) { cout << e << endl; }
     return 0;

@@ -6,9 +6,8 @@
 - Build image graphics module with feature highlighting
 - Build traditional perceptual hash and comparison module
 - Build discrete cosine transfer perceptual hash and comparison module
-    - Links:
-        - https://users.cs.cf.ac.uk/Dave.Marshall/Multimedia/node231.html
-        - http://hackerfactor.com/blog/index.php%3F/archives/432-Looks-Like-It.html
+    - https://users.cs.cf.ac.uk/Dave.Marshall/Multimedia/node231.html
+    - http://hackerfactor.com/blog/index.php%3F/archives/432-Looks-Like-It.html
 - Build feature selection module
   - Redundant selection methods (SIFT keypoints, corners, clusters, naive pixel values)
 - Build feature randomization module with selection probabilities

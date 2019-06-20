@@ -1,7 +1,10 @@
+# Dependencies
+
+- Python Imaging Library (PIL)
+
 # Implementation Steps
 
 - Organize module hierarchy
-- Choose libraries with portability bundle
 - Build image reading and pixel grid module
 - Build image graphics module with feature highlighting
 - Build traditional perceptual hash and comparison module
@@ -15,7 +18,7 @@
   - Use traditional perceptual hash
   - Use DCT pereceptual hash
   - Use CNN (and other methods?)
-- Buidl pure image algorithm for comparing images
+- Build pure image algorithm for comparing images
   - Select most probably features
   - Run features through deterministic randomization scheme
   - Compare keypoint regions
@@ -23,3 +26,13 @@
 - Build web client
 
 # Module Hierarchy
+
+--- pure
+    +--- imaging
+         +--- pimage (pimage.py)
+         +--- pixel grid (grid.py)
+         +--- graphics (graphics.py)
+    +--- hashing
+         +--- perceptual hash
+         +--- DCT hash
+    

@@ -4,7 +4,9 @@ from PIL import Image
 class PixelGrid:
     """
     Defines the infrastructure for manually handling an 
-    image as a grid of pixels.
+    image as a grid of pixels. A PixelGrid object is 
+    constructed from a valid image file, which is always 
+    filtered into RGB format. 
 
     Attributes: 
         - file_name -> str : absolute path for image file
@@ -18,6 +20,8 @@ class PixelGrid:
     Methods:
         - load_pixel_grid() -> None : loads pixel grid attribute
             from file name attribute 
+        - get_grid_dimensions() -> tuple : returns the grid dimensions
+            in a consistent order
         - get_grid_pixel(row, col) -> tuple : fetches RGB-tuple values 
             for pixel at coordinate (row, col)
         - print_pixel_grid() -> None : prints entire pixel grid by 
@@ -50,6 +54,10 @@ class PixelGrid:
 
         # set dimension attributes
         self.width, self.height = self.grid.size
+
+    def get_grid_dimensions(self) -> tuple:
+        self.width, self.height = self.grid.size
+        return (self.height, self.width)
 
     def get_grid_pixel(self, row, col) -> tuple:
 

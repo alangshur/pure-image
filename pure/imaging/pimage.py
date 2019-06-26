@@ -14,7 +14,7 @@ class FeatureAddition:
             on which feature is mounted
         - grid_dimensions -> tuple : height/width dimensions of 
             underlying pixel grid
-        - focal_data -> map : pixel values for each pixel index
+        - focal_data -> dict : pixel values for each pixel index
             pair in focal region on original image
         - focal_dimensions -> tuple : height/width dimensions of 
             focal region

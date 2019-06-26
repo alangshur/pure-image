@@ -69,7 +69,7 @@ class GraphicsImage:
             for j in range(col, col + width):
                 if j > grid_width: break
                 self.draw_pixel((i, j), color)
-
+ 
     def draw_feature_invert(self, position, size = (30, 30)) -> None:
         
         # get dimension values and position color

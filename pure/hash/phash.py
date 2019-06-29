@@ -18,11 +18,12 @@ class VariableGrid:
             for a single specified location and pixel value
         - read_grid_data(location) -> tuple : fetch grid data for
             a single specified location in the grid
+        - print_grid_data() -> None : output entire formatted grid
     """
 
     def __init__(self, size):
         self.height, self.width = size
-        self.grid = [[] * self.width ] * self.height
+        self.grid = [[0] * self.width ] * self.height
 
     def load_grid_data(self, location, data) -> None:
         row, col = location
@@ -45,6 +46,13 @@ class VariableGrid:
 
         # fetch data
         return self.grid[row][col]
+
+    def print_grid_data(self) -> None:
+        for row in range(self.height):
+            print('\nRow {}:'.format(row))
+            for col in range(self.width):
+                print('({}, {}) -> {}'.format(row, col, \
+                    self.read_grid_data((row, col))))
         
 class PerceptualHash:
     """
@@ -87,3 +95,5 @@ def convert_pixel_to_var(pixel_grid) -> VariableGrid:
         for col in range(width):
             pixel = pixel_grid.get_grid_pixel(row, col)
             var_grid.load_grid_data((row, col), pixel)
+    
+    return var_grid

@@ -1,5 +1,6 @@
 import imghdr
 from PIL import Image
+import pure.hash.phash as phash
 
 class PixelGrid:
     """
@@ -27,6 +28,8 @@ class PixelGrid:
         - print_pixel_grid() -> None : prints entire pixel grid by 
             iterating over the pixel for each row/col
         - output_image() -> None : prints pixel grid to console
+        - get_var_grid() -> VariableGrid : converts the pixel grid
+            to a variable grid
     """
 
     def __init__(self, file_name):
@@ -80,3 +83,6 @@ class PixelGrid:
         # output image
         assert self.loaded == True 
         self.grid.show()
+    
+    def get_var_grid(self) -> phash.VariableGrid:
+        return phash.convert_pixel_to_var(self)

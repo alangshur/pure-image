@@ -1,5 +1,6 @@
 import pure.imaging.graphics as graphics
 import pure.imaging.grid as grid
+import pure.hash.phash as phash
 
 class FeatureAddition:
     """
@@ -150,6 +151,8 @@ class PImage:
             pimage feature set attached to the specified id
         - output_image() -> None : outputs the graphics image attached
             to the pimage
+        - get_var_grid() -> VariableGrid : converts the PImage pixel grid
+            to a variable grid
     """
     
     def __init__(self, file_name, title, id):
@@ -193,6 +196,9 @@ class PImage:
         if verbose == True:
             self.feature_set.print_feature_set()
 
-    def output_image(self):
+    def output_image(self) -> None:
         print("Outputting image...")
         self.gimage.output_image()
+
+    def get_var_grid(self) -> phash.VariableGrid:
+        self.pixel_grid.get_var_grid()

@@ -46,7 +46,7 @@ class VariableGrid:
         # fetch data
         return self.grid[row][col]
         
-class PerceptulHash:
+class PerceptualHash:
     """
     Defines an abstract parent class for average and DCT hash classes.
     All perceptual hash classes are instanitated using a variable grid
@@ -57,7 +57,6 @@ class PerceptulHash:
             the intended hash and returning a dictionary of the results
         - publish_results() -> None : abstract method for printing the
             results of the hash computed above
-    
     """
 
     __metaclass__ = ABCMeta
@@ -74,5 +73,17 @@ class PerceptulHash:
     def publish_results(self) -> None:
         raise NotImplementedError
 
-    
+"""
+Utility function for converting a PixelGrid object
+to a VariableGrid object for portability between modules.
+"""
+def convert_pixel_to_var(pixel_grid) -> VariableGrid:
+    assert pixel_grid.loaded == True
+    var_grid = VariableGrid(pixel_grid.size)
+    height, width = pixel_grid.size
 
+    # iteratively copy and paste pixel data
+    for row in range(height):
+        for col in range(width):
+            pixel = pixel_grid.get_grid_pixel(row, col)
+            var_grid.load_grid_data((row, col), pixel)

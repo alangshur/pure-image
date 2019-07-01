@@ -201,4 +201,4 @@ class PImage:
         self.gimage.output_image()
 
     def get_var_grid(self) -> phash.VariableGrid:
-        self.pixel_grid.get_var_grid()
+        return self.pixel_grid.get_var_grid()

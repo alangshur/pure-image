@@ -49,6 +49,14 @@ class AverageHash(phash.PerceptualHash):
         if verbose: 
             print("Publishing results...\n")
             self.publish_results()
+    
+    def publish_results(self) -> None:
+        assert self.hash_flag == True
+        print("Red hash: {}\n".format(self.__join_list_bits(self.red_hash)))
+        print("Green hash: {}\n".format(self.__join_list_bits(self.green_hash)))
+        print("Blue hash: {}\n".format(self.__join_list_bits(self.blue_hash)))
+        print("Grayscale hash: {}\n".format(self.__join_list_bits(self.gs_hash)))
+        print("Luminosity hash: {}\n".format(self.__join_list_bits(self.lum_hash)))  
         
     def __compute_mean(self) -> tuple:
         assert self.reduction_flag == True
@@ -82,15 +90,7 @@ class AverageHash(phash.PerceptualHash):
                 pixel_val = self.reduced_data.read_grid_data((row, col))
                 hash_res.append(1 if (coef[0] * pixel_val[0] + coef[1] * pixel_val[1] + \
                     coef[2] * pixel_val[2]) / (coef[0] + coef[1] + coef[2]) > mean else 0)
-        return hash_res
-                
-    def publish_results(self) -> None:
-        assert self.hash_flag == True
-        print("Red hash: {}\n".format(self.__join_list_bits(self.red_hash)))
-        print("Green hash: {}\n".format(self.__join_list_bits(self.green_hash)))
-        print("Blue hash: {}\n".format(self.__join_list_bits(self.blue_hash)))
-        print("Grayscale hash: {}\n".format(self.__join_list_bits(self.gs_hash)))
-        print("Luminosity hash: {}\n".format(self.__join_list_bits(self.lum_hash)))    
+        return hash_res  
 
     def __join_list_bits(self, hash) -> None:
         return "".join([str(x) for x in hash])

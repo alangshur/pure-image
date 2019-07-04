@@ -32,8 +32,6 @@ class VariableGrid:
         # validate input data
         assert row < self.height
         assert col < self.width
-        assert isinstance(data, tuple)
-        assert len(data) == 3
 
         # load data
         self.grid[row][col] = data
@@ -81,11 +79,12 @@ class PerceptualHash:
         - redice_grid() -> None : utility method intended for subclasses
             to reduce variable grid into a averaged square variable grid
             of dimensiomn 'reduction_size' by 'reduction_size'
+        - convert_to_gs
     """
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, variable_grid, reduction_size = 8):
+    def __init__(self, variable_grid, reduction_size):
         self.data = variable_grid
 
         # init hash data

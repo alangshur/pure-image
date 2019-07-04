@@ -5,7 +5,7 @@ class AverageHash(phash.PerceptualHash):
     """
     Defines the set of utilities for taking a standard
     perceptual hash of a grid of RGB pixel values. A 
-    PerceptualHash object should be initialized with a valid grid
+    AverageHash object should be initialized with a valid grid
     (list of lists) of tuple-formatted data.
 
     Attributes:
@@ -18,13 +18,12 @@ class AverageHash(phash.PerceptualHash):
 
     Methods:
         - (!) See parent class for overriden methods
-
     """
     
-    def __init__(self, variable_grid):
-        super().__init__(variable_grid)
+    def __init__(self, variable_grid, reduction_size = 8):
+        super().__init__(variable_grid, reduction_size)        
     
-    def compute_hash(self, verbose = False) -> None:
+    def compute_hash(self, bw_only = False, verbose = False) -> None:
         assert self.hash_flag == False
 
         # reduce grid
@@ -36,27 +35,29 @@ class AverageHash(phash.PerceptualHash):
         pixel_mean = self.__compute_mean()
 
         # calculate bit hashes
-        if verbose: print("Computing all bit hashes...\n")
-        self.red_hash = self.__compute_bit_hash(pixel_mean[0], 0)
-        self.green_hash = self.__compute_bit_hash(pixel_mean[1], 1)
-        self.blue_hash = self.__compute_bit_hash(pixel_mean[2], 2)
+        if verbose: print("Computing bit hashes...\n")
         self.gs_hash = self.__compute_gs_bit_hash(sum(pixel_mean) / 3, (1, 1, 1))
-        self.lum_hash = self.__compute_gs_bit_hash(.2126 * pixel_mean[0] + .7152 * pixel_mean[1] + \
-            .0722 * pixel_mean[2], (.2126, .7152, .0722))
+        if not bw_only:
+            self.red_hash = self.__compute_bit_hash(pixel_mean[0], 0)
+            self.green_hash = self.__compute_bit_hash(pixel_mean[1], 1)
+            self.blue_hash = self.__compute_bit_hash(pixel_mean[2], 2)
+            self.lum_hash = self.__compute_gs_bit_hash(.2126 * pixel_mean[0] + .7152 * pixel_mean[1] + \
+                .0722 * pixel_mean[2], (.2126, .7152, .0722))
         self.hash_flag = True
 
         # publish results
-        if verbose: 
+        if verbose:
             print("Publishing results...\n")
-            self.publish_results()
+            self.publish_results(bw_only)
     
-    def publish_results(self) -> None:
+    def publish_results(self, bw_only) -> None:
         assert self.hash_flag == True
-        print("Red hash: {}\n".format(self.__join_list_bits(self.red_hash)))
-        print("Green hash: {}\n".format(self.__join_list_bits(self.green_hash)))
-        print("Blue hash: {}\n".format(self.__join_list_bits(self.blue_hash)))
+        if not bw_only:
+            print("Red hash: {}\n".format(self.__join_list_bits(self.red_hash)))
+            print("Green hash: {}\n".format(self.__join_list_bits(self.green_hash)))
+            print("Blue hash: {}\n".format(self.__join_list_bits(self.blue_hash)))
+            print("Luminosity hash: {}\n".format(self.__join_list_bits(self.lum_hash)))  
         print("Grayscale hash: {}\n".format(self.__join_list_bits(self.gs_hash)))
-        print("Luminosity hash: {}\n".format(self.__join_list_bits(self.lum_hash)))  
         
     def __compute_mean(self) -> tuple:
         assert self.reduction_flag == True

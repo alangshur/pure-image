@@ -9,7 +9,7 @@ class FeatureAddition:
     requires the original pixel grid in order to populate its data. 
 
     Attributes:
-        - title -> String : title for image feature
+        - title -> str : title for image feature
         - id -> String : id for image feature
         - pixel_grid -> PixelGrid : underlying pixel grid structure
             on which feature is mounted

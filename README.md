@@ -17,6 +17,7 @@
   - Use traditional perceptual hash
   - Use DCT pereceptual hash
   - Use CNN (and other methods?)
+  - Use k-means to cluster all the different results
 - Build pure image algorithm for comparing images
   - Select most probably features
   - Run features through deterministic randomization scheme

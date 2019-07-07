@@ -64,6 +64,47 @@ class FeatureExtractor:
         # pre-process image
         self.img_gs = cv2.resize(img, (n_width, n_height))
         self.img_np = np.float32(self.img_gs)
+
+        # create np feature extractor library
+        self.fe_lib_np = { \
+            'harris': FEAlgorithms.get_harris_corner, \
+            'shi': FEAlgorithms.get_shi_tomasi_corner, \
+        }
+        
+        # create gs feature extractor library
+        self.fe_lib_gs = { \
+            'fast': FEAlgorithms.get_FAST_corner, \
+            'sift': FEAlgorithms.get_SIFT_keypoint, \
+            'surf': FEAlgorithms.get_SURF_keypoint, \
+            'kaze': FEAlgorithms.get_KAZE_keypoint, \
+            'akaze': FEAlgorithms.get_AKAZE_keypoint, \
+            'brisk': FEAlgorithms.get_BRISK_keypoint, \
+            'brief': FEAlgorithms.get_BRIEF_keypoint, \
+            'orb': FEAlgorithms.get_ORB_keypoint \
+        }
+
+    def run_bulk_feature_extraction(self, fe_np, fe_gs, no_include, params) -> list:
+        bulk_features = set()
+
+        # run all for empty fe_np and fe_gs
+        if len(fe_np) == 0: fe_np = ['harris', 'shi']
+        if len(fe_gs) == 0: fe_gs = ['fast', 'sift', 'surf', 'kaze', \
+            'akaze', 'brisk', 'brief', 'orb']
+
+        # execute np feature extraction
+        for fe in fe_np:
+            if fe in no_include: continue
+            if fe in params: 
+                bulk_features = bulk_features.union(self.fe_lib_np[fe](self.img_np, **params[fe]))
+            else: bulk_features = bulk_features.union(self.fe_lib_np[fe](self.img_np))
+        
+        # execute gs feature extraction
+        for fe in fe_gs:
+            if fe in no_include: continue
+            if fe in params: 
+                bulk_features = bulk_features.union(self.fe_lib_gs[fe](self.img_gs, **params[fe]))
+            else: bulk_features = bulk_features.union(self.fe_lib_gs[fe](self.img_gs))
+        return bulk_features
         
     def print_added_features(self) -> None:
         self.pimage.output_image()
@@ -101,7 +142,7 @@ class FEAlgorithms:
 
     @staticmethod
     def get_harris_corner(img_np, block_size = 5, ksize = 3, k = 0.04, crit_max_it = 100, \
-        crit_epsilon = 0.001, win_size = (5, 5), zero_zone = (-1, -1)) -> list:
+        crit_epsilon = 0.001, win_size = (5, 5), zero_zone = (-1, -1)) -> set:
 
         # find harris corners
         dst = cv2.cornerHarris(img_np, block_size, ksize, k)
@@ -119,11 +160,11 @@ class FEAlgorithms:
             win_size, zero_zone, criteria)
         
         # convert matrix to list tuples
-        return FEAlgorithms.__get_matrix_list_tuples(corners)
+        return FEAlgorithms.__get_matrix_set_tuples(corners)
     
     @staticmethod
     def get_shi_tomasi_corner(img_np, max_corners = 50, quality_level = 0.01, \
-        min_dist = 10) -> list:
+        min_dist = 10) -> set:
 
         # find shi-tomasi corners
         corners = cv2.goodFeaturesToTrack(img_np, max_corners, quality_level, \
@@ -131,70 +172,70 @@ class FEAlgorithms:
         corners = np.int0(corners)
 
         # convert matrix to list tuples
-        return FEAlgorithms.__get_bound_matrix_list_tuples(corners)
+        return FEAlgorithms.__get_bound_matrix_set_tuples(corners)
 
     @staticmethod
-    def get_FAST_corner(img_gs):
+    def get_FAST_corner(img_gs) -> set:
 
         # find FAST corners
         fast = cv2.FastFeatureDetector_create()
         kps = fast.detect(img_gs, None)
 
         # format keypoint objects
-        return FEAlgorithms.__get_keypoint_list_tuples(kps)
+        return FEAlgorithms.__get_keypoint_set_tuples(kps)
 
     @staticmethod
-    def get_SIFT_keypoint(img_gs, n_features = 400):
+    def get_SIFT_keypoint(img_gs, n_features = 400) -> set:
 
         # find shift keypoints
         sift = cv2.xfeatures2d.SIFT_create(n_features)
         kps, _ = sift.detectAndCompute(img_gs, None)
 
         # format keypoint objects
-        return FEAlgorithms.__get_keypoint_list_tuples(kps)
+        return FEAlgorithms.__get_keypoint_set_tuples(kps)
 
     @staticmethod
-    def get_SURF_keypoint(img_gs, n_features = 400):
+    def get_SURF_keypoint(img_gs, n_features = 400) -> set:
 
         # find surf keypoints
         surf = cv2.xfeatures2d.SURF_create(n_features)
         kps, _ = surf.detectAndCompute(img_gs, None)
 
         # format keypoint objects
-        return FEAlgorithms.__get_keypoint_list_tuples(kps)
+        return FEAlgorithms.__get_keypoint_set_tuples(kps)
     
     @staticmethod
-    def get_KAZE_keypoint(img_gs):
+    def get_KAZE_keypoint(img_gs) -> set:
 
         # find surf keypoints
         surf = cv2.KAZE_create()
         kps, _ = surf.detectAndCompute(img_gs, None)
 
         # format keypoint objects
-        return FEAlgorithms.__get_keypoint_list_tuples(kps)
+        return FEAlgorithms.__get_keypoint_set_tuples(kps)
     
     @staticmethod
-    def get_AKAZE_keypoint(img_gs):
+    def get_AKAZE_keypoint(img_gs) -> set:
 
         # find surf keypoints
         surf = cv2.AKAZE_create()
         kps, _ = surf.detectAndCompute(img_gs, None)
 
         # format keypoint objects
-        return FEAlgorithms.__get_keypoint_list_tuples(kps)
+        return FEAlgorithms.__get_keypoint_set_tuples(kps)
     
     @staticmethod
-    def get_BRISK_keypoint(img_gs):
+    def get_BRISK_keypoint(img_gs) -> set:
 
         # find surf keypoints
         surf = cv2.BRISK_create()
         kps, _ = surf.detectAndCompute(img_gs, None)
 
         # format keypoint objects
-        return FEAlgorithms.__get_keypoint_list_tuples(kps)
+        return FEAlgorithms.__get_keypoint_set_tuples(kps)
 
     @staticmethod
-    def get_BRIEF_keypoint(img_gs):
+    def get_BRIEF_keypoint(img_gs) -> set:
 
         # find BRIEF keypoints
         star = cv2.xfeatures2d.StarDetector_create()
@@ -203,10 +244,10 @@ class FEAlgorithms:
         kps, _ = brief.compute(img_gs, kps)
 
         # format keypoint objects
-        return FEAlgorithms.__get_keypoint_list_tuples(kps)
+        return FEAlgorithms.__get_keypoint_set_tuples(kps)
     
     @staticmethod
-    def get_ORB_keypoint(img_gs):
+    def get_ORB_keypoint(img_gs) -> set:
 
         # find ORB keypoints
         orb = cv2.ORB_create()
@@ -214,28 +255,28 @@ class FEAlgorithms:
         kps, _ = orb.compute(img_gs, kps)
 
         # format keypoint objects
-        return FEAlgorithms.__get_keypoint_list_tuples(kps)
+        return FEAlgorithms.__get_keypoint_set_tuples(kps)
 
     @staticmethod
-    def __get_keypoint_list_tuples(kps) -> list:
-        list_tuples = []
+    def __get_keypoint_set_tuples(kps) -> set:
+        set_tuples = set()
         for kp in kps:
             x, y = kp.pt
-            list_tuples.append((int(y), int(x)))
-        return list_tuples  
+            set_tuples.add((int(y), int(x)))
+        return set_tuples  
 
     @staticmethod
-    def __get_bound_matrix_list_tuples(np_matrix) -> list:
-        list_tuples = []
+    def __get_bound_matrix_set_tuples(np_matrix) -> set:
+        set_tuples = set()
         for i in np_matrix:
             x, y = i.ravel()
-            list_tuples.append((y, x))
-        return list_tuples
+            set_tuples.add((int(y), int(x)))
+        return set_tuples
 
     @staticmethod
-    def __get_matrix_list_tuples(np_matrix) -> list:
-        list_tuples = []
+    def __get_matrix_set_tuples(np_matrix) -> set:
+        set_tuples = set()
         shape = np_matrix.shape
         for row in range(shape[0]):
-            list_tuples.append((int(np_matrix[row][1]), int(np_matrix[row][0])))
-        return list_tuples
+            set_tuples.add((int(np_matrix[row][1]), int(np_matrix[row][0])))
+        return set_tuples

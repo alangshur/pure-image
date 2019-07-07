@@ -25,6 +25,8 @@ class FeatureAddition:
              in pixel grid
         - size -> tuple : dimensionality of feature focal region in 
             pixel grid
+        - graphics -> bool : flag for whether or not the feature addition
+            was drawn on the graphics image
     
     Methods: 
         - populate_focal_region(position, size) -> None : loads pixel
@@ -32,12 +34,13 @@ class FeatureAddition:
             focal region boundaries
     """
 
-    def __init__(self, pixel_grid, title, id):
+    def __init__(self, pixel_grid, title, id, graphics = True):
         self.title = title
         self.id = id
         self.pixel_grid = pixel_grid
         self.grid_dimensions = pixel_grid.get_grid_dimensions()
         self.populated = False
+        self.graphics = graphics
 
         # focal region data params
         self.focal_data = None
@@ -102,7 +105,7 @@ class FeatureSet:
     def add_feature(self, feature_addition) -> None:
 
         # verify populated feature focal region
-        assert feature_addition.populated == True
+        assert feature_addition.populated or not feature_addition.graphics
         assert feature_addition not in self.feature_set
         self.feature_set.add(feature_addition)
 
@@ -159,27 +162,28 @@ class PImage:
         self.title = title
         self.id = id
 
-        # load pixel grid
+        # load pixel grid (first copy)
         self.file_name = file_name
         self.pixel_grid = grid.PixelGrid(file_name)
         self.pixel_grid.load_pixel_grid()
 
-        # add graphics/features data
+        # add graphics/features data (second copy)
         self.gimage = graphics.GraphicsImage(self.pixel_grid)
         self.feature_set = FeatureSet()
 
     def add_feature(self, title, id, position, size = (30, 30), \
-        color = None, verbose = False):
+        color = None, verbose = False, graphics = True):
 
         # assert image exists and create feature
-        feature = FeatureAddition(self.pixel_grid, title, id)
-        feature.populate_focal_region(position, size)
+        feature = FeatureAddition(self.pixel_grid, title, id, graphics = graphics)
 
         # add feature and draw graphics
+        if graphics:
+            feature.populate_focal_region(position, size)
+            if color != None: 
+                self.gimage.draw_feature_color(position, color, size)
+            else: self.gimage.draw_feature_invert(position, size)
         self.feature_set.add_feature(feature)
-        if color != None: 
-            self.gimage.draw_feature_color(position, color, size)
-        else: self.gimage.draw_feature_invert(position, size)
         
         # print success message
         if verbose == True:
@@ -189,8 +193,9 @@ class PImage:
 
         # remove feature from feature set and gimage
         feature = self.feature_set.remove_feature(id)
-        self.gimage.replace_square_data(feature.position, feature.size, \
-            feature.focal_data)
+        if feature.graphics:
+            self.gimage.replace_square_data(feature.position, feature.size, \
+                feature.focal_data)
 
         # print success message
         if verbose == True:

@@ -1,7 +1,15 @@
 import pure.imaging.pimage as pimage
 import numpy as np
-import math, uuid
+import math, uuid, os, random
+from sklearn.cluster import AgglomerativeClustering
+from sklearn.cluster import KMeans
+from pyclustering.cluster.xmeans import xmeans
+from pyclustering.cluster.center_initializer import kmeans_plusplus_initializer
 import cv2 
+import scipy
+from scipy.misc import imread
+import _pickle as pickle
+import matplotlib.pyplot as plt
 
 class FeatureExtractor:
     """
@@ -32,6 +40,9 @@ class FeatureExtractor:
         - add_list_features() -> None : adds features associated with the
             pre-processed 'img_gs' and 'img_np' given by the 'features' 
             parameters and annotated by the 'group_name' parameter
+        - execute_feature_extraction_pipeline(graphics, ncentroids) -> list : 
+            run parameterized feature extraction tuned for best results with 
+            optional graphics and cluster centroids with kmeans for best results
     """
 
     def __init__(self, pimage, num_features = 30, scale_ceil = 500):
@@ -41,7 +52,7 @@ class FeatureExtractor:
         self.pimage = pimage
         self.num_features = num_features
 
-        # pre-process image
+        # load image
         img = cv2.imread(self.file_name)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -64,47 +75,6 @@ class FeatureExtractor:
         # pre-process image
         self.img_gs = cv2.resize(img, (n_width, n_height))
         self.img_np = np.float32(self.img_gs)
-
-        # create np feature extractor library
-        self.fe_lib_np = { \
-            'harris': FEAlgorithms.get_harris_corner, \
-            'shi': FEAlgorithms.get_shi_tomasi_corner, \
-        }
-        
-        # create gs feature extractor library
-        self.fe_lib_gs = { \
-            'fast': FEAlgorithms.get_FAST_corner, \
-            'sift': FEAlgorithms.get_SIFT_keypoint, \
-            'surf': FEAlgorithms.get_SURF_keypoint, \
-            'kaze': FEAlgorithms.get_KAZE_keypoint, \
-            'akaze': FEAlgorithms.get_AKAZE_keypoint, \
-            'brisk': FEAlgorithms.get_BRISK_keypoint, \
-            'brief': FEAlgorithms.get_BRIEF_keypoint, \
-            'orb': FEAlgorithms.get_ORB_keypoint \
-        }
-
-    def run_bulk_feature_extraction(self, fe_np, fe_gs, no_include, params) -> list:
-        bulk_features = set()
-
-        # run all for empty fe_np and fe_gs
-        if len(fe_np) == 0: fe_np = ['harris', 'shi']
-        if len(fe_gs) == 0: fe_gs = ['fast', 'sift', 'surf', 'kaze', \
-            'akaze', 'brisk', 'brief', 'orb']
-
-        # execute np feature extraction
-        for fe in fe_np:
-            if fe in no_include: continue
-            if fe in params: 
-                bulk_features = bulk_features.union(self.fe_lib_np[fe](self.img_np, **params[fe]))
-            else: bulk_features = bulk_features.union(self.fe_lib_np[fe](self.img_np))
-        
-        # execute gs feature extraction
-        for fe in fe_gs:
-            if fe in no_include: continue
-            if fe in params: 
-                bulk_features = bulk_features.union(self.fe_lib_gs[fe](self.img_gs, **params[fe]))
-            else: bulk_features = bulk_features.union(self.fe_lib_gs[fe](self.img_gs))
-        return bulk_features
         
     def print_added_features(self) -> None:
         self.pimage.output_image()
@@ -121,6 +91,61 @@ class FeatureExtractor:
                 str(uuid.uuid1()), (height, width), size, color)
             v += 1
 
+    def execute_feature_extraction_pipeline(self, graphics = False, ncentroids = 50) -> set:
+
+        # extract features
+        bulk_features = self.__run_tuned_feature_extraction()
+
+        # run kmeans on extracted features
+        centroids = self.__run_feature_xmeans(bulk_features)
+        
+        # add graphics 
+        if graphics:
+            self.add_list_features('Bulk Features', bulk_features, size = (10, 10))
+            self.add_list_features('Feature Centroids', centroids, \
+                color = (255, 0, 0), size = (20, 20))
+            
+            # print graphics
+            self.print_added_features()
+
+        return bulk_features
+
+    def __run_feature_agglomerative_clustering(self, features) -> set:
+
+        # run agglomerative clustering algorithm
+        agglo = AgglomerativeClustering(n_clusters = 10).fit(np.array(features))
+        return agglo.labels_
+
+    def __run_feature_kmeans(self, features, n_clusters) -> list:
+
+        # run kmeans algorithm
+        kmeans = KMeans(n_clusters = n_clusters).fit(np.array(features))
+        centroids = kmeans.cluster_centers_.astype(int)
+        return centroids.tolist()
+
+    def __run_feature_xmeans(self, features, num_init_centers = 10, max_centers = 50) -> list:
+
+        # run xmeans algorithm
+        initial_centers = kmeans_plusplus_initializer(features, num_init_centers).initialize()
+        algo = xmeans(features, initial_centers = initial_centers, kmax = max_centers)
+        algo.process()
+
+        # TODO: Map centers to clusters and eliminate result clusters that don't have enough data points in them (also produce more data points for better selectivity)
+
+        # post-process results
+        xmeans_features = []
+        for pair in algo.get_centers():
+            row, col = pair[0], pair[1]
+            xmeans_features.append((int(round(row)), int(round(col))))
+        
+
+        return xmeans_features
+
+    def __run_tuned_feature_extraction(self) -> list:
+
+        features, _ = FEAlgorithms.get_ORB_keypoint(self.img_gs, vector_size = 250)
+        return features
+
     def __find_lcd(self, a, b, ceil) -> int:
         lcm = (a * b) // self.__find_gcd(a, b)
         return lcm
@@ -136,8 +161,19 @@ class FEAlgorithms:
     image and return feature points as a list of row/col tuples. 
 
     Static Methods:
-        - get_harris_corner -> list : selects corners using harris corner
+        - get_harris_corner -> set : selects corners using harris corner
             detection algorithm with sub-pixel accuracy for refined results
+        - get_shi_tomasi_corner -> set : selects corners using shi-tomasi corner 
+            detection algorithm
+        - get_FAST_keypoint -> set : selects corners using FAST feature extraction algorithm
+        - get_SIFT_keypoint -> set : selects corners using SIFT feature extraction algorithm
+        - get_SURF_keypoint -> set : selects corners using SURF feature extraction algorithm
+        - get_KAZE_keypoint -> set : selects corners using KAZE feature extraction algorithm
+        - get_AKAZE_keypoint -> set : selects corners using AKAZE feature extraction algorithm
+        - get_BRISK_keypoint -> set : selects corners using BRISK feature extraction algorithm
+        - get_BRIEF_keypoint -> set : selects corners using BRIEF feature extraction algorithm
+        - get_ORB_keypoint -> (list, list) : selects corners using ORB feature extraction algorithm 
+            and returns reduced list of features and feature descriptors
     """
 
     @staticmethod
@@ -175,10 +211,10 @@ class FEAlgorithms:
         return FEAlgorithms.__get_bound_matrix_set_tuples(corners)
 
     @staticmethod
-    def get_FAST_corner(img_gs) -> set:
+    def get_FAST_corner(img_gs, threshold = 50) -> set:
 
         # find FAST corners
-        fast = cv2.FastFeatureDetector_create()
+        fast = cv2.FastFeatureDetector_create(threshold)
         kps = fast.detect(img_gs, None)
 
         # format keypoint objects
@@ -247,15 +283,25 @@ class FEAlgorithms:
         return FEAlgorithms.__get_keypoint_set_tuples(kps)
     
     @staticmethod
-    def get_ORB_keypoint(img_gs) -> set:
+    def get_ORB_keypoint(img_gs, nfeatures = 1000, vector_size = 200) -> (list, list):
 
         # find ORB keypoints
-        orb = cv2.ORB_create()
-        kps = orb.detect(img_gs, None)
-        kps, _ = orb.compute(img_gs, kps)
+        alg = cv2.ORB_create(nfeatures = nfeatures)
+        o_kps = alg.detect(img_gs)
+        kps = sorted(o_kps, key = lambda x: -x.response)[:vector_size]
+        kps, dsc = alg.compute(img_gs, kps)
+        dsc = dsc.flatten()
 
         # format keypoint objects
-        return FEAlgorithms.__get_keypoint_set_tuples(kps)
+        return FEAlgorithms.__get_keypoint_list_tuples(kps), dsc.tolist()
+
+    @staticmethod
+    def __get_keypoint_list_tuples(kps) -> list:
+        list_tuples = []
+        for kp in kps:
+            x, y = kp.pt
+            list_tuples.append((int(y), int(x)))
+        return list_tuples  
 
     @staticmethod
     def __get_keypoint_set_tuples(kps) -> set:

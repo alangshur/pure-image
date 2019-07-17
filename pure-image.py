@@ -8,7 +8,7 @@ from sklearn.cluster import KMeans
 try:
     start_time = time.time()
     
-    pure_image = pimage.PImage('./samples/landscape.jpg', 'horse test image', str(uuid.uuid1()))
+    pure_image = pimage.PImage('./samples/chicago.png', 'horse test image', str(uuid.uuid1()))
     feature_extractor = feature.FeatureExtractor(pure_image)
     feature_extractor.execute_feature_extraction_pipeline(graphics = True)
 

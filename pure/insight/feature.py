@@ -1,6 +1,6 @@
 import pure.imaging.pimage as pimage
 import numpy as np
-import math, uuid, os, random
+import math, uuid, os, random, itertools
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.cluster import KMeans
 from pyclustering.cluster.xmeans import xmeans
@@ -123,23 +123,57 @@ class FeatureExtractor:
         centroids = kmeans.cluster_centers_.astype(int)
         return centroids.tolist()
 
-    def __run_feature_xmeans(self, features, num_init_centers = 10, max_centers = 50) -> list:
+    def __run_feature_xmeans(self, features, num_init_centers = 10, max_centers = 30, \
+        clust_size_threshold = 1, dist_threshold = 10) -> list:
 
         # run xmeans algorithm
         initial_centers = kmeans_plusplus_initializer(features, num_init_centers).initialize()
         algo = xmeans(features, initial_centers = initial_centers, kmax = max_centers)
         algo.process()
+        centroids, clusters = algo.get_centers(), algo.get_clusters()
+ 
+        # pre-process centroids
+        p_centroids = []
+        for coord in centroids:
+            row, col = coord[0], coord[1]
+            p_centroids.append((int(round(row)), int(round(col))))
 
-        # TODO: Map centers to clusters and eliminate result clusters that don't have enough data points in them (also produce more data points for better selectivity)
-
-        # post-process results
-        xmeans_features = []
-        for pair in algo.get_centers():
-            row, col = pair[0], pair[1]
-            xmeans_features.append((int(round(row)), int(round(col))))
+        # determine close centroids
+        comb_indices = set()
+        for comb in itertools.combinations(range(len(p_centroids)), 2):
+            cen, c_cen = p_centroids[comb[0]], p_centroids[comb[1]]
+            dist = math.sqrt((cen[0] - c_cen[0]) ** 2 + (cen[1] - c_cen[1]) ** 2)
+            if dist <= dist_threshold: comb_indices.add(frozenset(comb))
         
+        # find transitive centroid clusters
+        trans_centroids = []
+        for comb in comb_indices:
+            addedFlag = False
+            for i in range(len(trans_centroids)):
+                if len(trans_centroids[i].intersection(comb)):
+                    trans_centroids[i] = trans_centroids[i].union(comb)
+                    addedFlag = True
+                    break
+            if not addedFlag: trans_centroids.append(frozenset(comb))
 
-        return xmeans_features
+        # combine close transitive centroids sets
+        c_centroids, added_indices = [], set()
+        for combs in trans_centroids:
+            n_centroid = [0, 0]
+            for c_idx in combs:
+                added_indices.add(c_idx)
+                n_centroid[0] += centroids[c_idx][0]
+                n_centroid[1] += centroids[c_idx][1]
+            n_centroid[0] /= len(combs)
+            n_centroid[1] /= len(combs)
+            c_centroids.append(n_centroid)
+
+        # purge under-sized clusters
+        for c_idx in range(len(centroids)):
+            if c_idx in added_indices or len(clusters[c_idx]) \
+                <= clust_size_threshold: continue
+            c_centroids.append(centroids[c_idx])
+        return c_centroids
 
     def __run_tuned_feature_extraction(self) -> list:
 

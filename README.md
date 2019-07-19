@@ -6,11 +6,11 @@
 
 ## Implementation Steps
 
-- (X) Organize module hierarchy
-- (X) Build image reading and pixel grid module
-- (X) Build image graphics module with feature highlighting
-- (X) Build traditional perceptual hash and comparison module
-- (X) Build discrete cosine transfer perceptual hash and comparison module
+- Organize module hierarchy
+- Build image reading and pixel grid module
+- Build image graphics module with feature highlighting
+- Build traditional perceptual hash and comparison module
+- Build discrete cosine transfer perceptual hash and comparison module
 - Build feature selection module
   - Redundant selection methods (SIFT keypoints, corners, clusters, naive pixel values)
 - Build keypoint region comparison module
@@ -25,7 +25,7 @@
 - Build database module
 - Build web client
 
-## Module Hierarchy
+## Module Hierarchy (Note: Broken formatting)
 
 --- pure
     +--- imaging

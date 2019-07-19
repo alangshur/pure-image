@@ -25,17 +25,17 @@
 - Build database module
 - Build web client
 
-## Module Hierarchy (Note: Broken formatting)
+## Module Hierarchy
 
---- pure
-    +--- imaging
-         +--- pimage (pimage.py)
-         +--- pixel grid (grid.py)
-         +--- graphics (graphics.py)
-    +--- hash
-         +--- perceptual hash (phash.py)
-         +--- average hash (average.py)
-         +--- DCT hash (dct.py)
-    +--- insight
-         +--- feature extraction
-         +--- focal comparator
+- pure
+  - imaging
+    - pimage (pimage.py)
+    - pixel grid (grid.py)
+    - graphics (graphics.py)
+  - hash
+    - perceptual hash (phash.py)
+    - average hash (average.py)
+    - DCT hash (dct.py)
+  - insight
+    - feature extraction
+    - focal comparator
